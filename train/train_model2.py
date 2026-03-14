@@ -16,9 +16,7 @@ df["label"] = df["label"].replace("open", "rest")
 
 print("Dataset size:", len(df))
 
-# -------------------------
 # FEATURE EXTRACTION
-# -------------------------
 
 window_size = 50
 
@@ -66,17 +64,13 @@ y = np.array(y)
 
 print("Feature shape:", X.shape)
 
-# -------------------------
 # NORMALIZATION
-# -------------------------
 
 scaler = StandardScaler()
 
 X = scaler.fit_transform(X)
 
-# -------------------------
 # TRAIN / TEST SPLIT
-# -------------------------
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
@@ -84,9 +78,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-# -------------------------
 # MODEL
-# -------------------------
 
 print("Training RandomForest...")
 
@@ -98,18 +90,14 @@ model = RandomForestClassifier(
 
 model.fit(X_train, y_train)
 
-# -------------------------
 # EVALUATION
-# -------------------------
 
 y_pred = model.predict(X_test)
 
 print("\nModel evaluation:\n")
 print(classification_report(y_test, y_pred))
 
-# -------------------------
 # SAVE
-# -------------------------
 
 joblib.dump(model, "modelv2.pkl")
 joblib.dump(scaler, "scaler_v2.pkl")

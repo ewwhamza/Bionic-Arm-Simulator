@@ -17,9 +17,7 @@ time.sleep(2)
 
 print("Starting EMG system...")
 
-# -----------------------
 # SENSOR STABILIZATION
-# -----------------------
 
 print("Stabilizing sensor for 2 seconds...")
 
@@ -29,9 +27,7 @@ while time.time() - start < 2:
 
 print("Sensor stabilized.")
 
-# -----------------------
 # BASELINE CALIBRATION
-# -----------------------
 
 print("Keep hand relaxed for 5 seconds for baseline calibration...")
 
@@ -49,9 +45,7 @@ baseline = np.median(baseline_values)
 
 print("\nBaseline established:", baseline)
 
-# -----------------------
 # ESTIMATED GESTURE LEVELS
-# -----------------------
 
 point_estimate = baseline + 100
 close_estimate = baseline + 500
@@ -61,9 +55,7 @@ print("REST ≈", int(baseline))
 print("POINT ≈", int(point_estimate))
 print("CLOSE ≈", int(close_estimate))
 
-# -----------------------
 # FEATURE FUNCTION
-# -----------------------
 
 def extract_features(signal):
 
@@ -83,9 +75,7 @@ def extract_features(signal):
 
     return [features]
 
-# -----------------------
 # PARAMETERS
-# -----------------------
 
 raw_chunk_size = 10
 window_chunks = 5
@@ -99,9 +89,7 @@ prediction_buffer = []
 
 print("\nStarting gesture recognition...\n")
 
-# -----------------------
 # LIVE LOOP
-# -----------------------
 
 while True:
 

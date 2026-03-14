@@ -9,15 +9,11 @@ from sklearn.metrics import classification_report
 print("Loading dataset...")
 df = pd.read_csv("emg_dataset.csv")
 
-# -----------------------------
 # 1. FIX LABELS (Merge OPEN into REST)
-# -----------------------------
 print("Merging OPEN into REST...")
 df['label'] = df['label'].replace('OPEN', 'REST')
 
-# -----------------------------
 # 2. MVC NORMALIZATION PER SUBJECT
-# -----------------------------
 print("Calculating MVC Normalization per subject...")
 df["emg_norm"] = 0.0
 
@@ -44,9 +40,7 @@ for (subject, hand), group in df.groupby(["subject", "hand"]):
     df.loc[group.index, "emg_norm"] = (group["emg"] - baseline) / (mvc - baseline)
 
 
-# -----------------------------
 # 2.5 CLEAN TRANSITION DATA (The Fix)
-# -----------------------------
 print("Filtering sloppy transition data...")
 
 # Separate the dataset by label
@@ -61,9 +55,7 @@ clean_close = df[(df['label'] == 'CLOSE') & (df['emg_norm'] > 0.50)]
 # Recombine into a clean dataset
 df = pd.concat([clean_rest, clean_point, clean_close])
 
-# -----------------------------
 # 3. FEATURE EXTRACTION
-# -----------------------------
 WINDOW = 200
 
 def extract_features(signal):
@@ -94,9 +86,7 @@ for label in df["label"].unique():
             X_temp.append(features)
             y_temp.append(label)
 
-# -----------------------------
 # 4. BALANCE THE DATASET (Undersampling)
-# -----------------------------
 print("Balancing the dataset...")
 df_features = pd.DataFrame(X_temp)
 df_features['label'] = y_temp
@@ -110,9 +100,7 @@ y = balanced_df['label'].values
 print("Final Balanced Dataset size:", X.shape)
 print("Class counts:\n", balanced_df['label'].value_counts())
 
-# -----------------------------
 # 5. TRAIN & EVALUATE
-# -----------------------------
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
 print("Training model...")
@@ -122,8 +110,6 @@ model.fit(X_train, y_train)
 print("\nModel Performance:\n")
 print(classification_report(y_test, model.predict(X_test)))
 
-# -----------------------------
 # 6. SAVE MODEL
-# -----------------------------
 joblib.dump(model, "emg_model4.pkl")
 print("\nModel saved as emg_model4.pkl")

@@ -10,10 +10,6 @@ print("Loading dataset...")
 
 df = pd.read_csv("emg_dataset.csv")
 
-# -----------------------------
-# NORMALIZE PER SUBJECT + HAND
-# -----------------------------
-
 print("Normalizing EMG values per subject...")
 
 df["emg_norm"] = 0
@@ -30,9 +26,7 @@ for (subject, hand), group in df.groupby(["subject", "hand"]):
     df.loc[group.index, "emg_norm"] = group["emg"] - baseline
 
 
-# -----------------------------
 # FEATURE EXTRACTION
-# -----------------------------
 
 WINDOW = 200
 
@@ -76,9 +70,7 @@ y = np.array(y)
 
 print("Dataset size:", X.shape)
 
-# -----------------------------
 # TRAIN TEST SPLIT
-# -----------------------------
 
 X_train, X_test, y_train, y_test = train_test_split(
     X,
@@ -88,9 +80,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-# -----------------------------
 # TRAIN MODEL
-# -----------------------------
 
 print("Training model...")
 
@@ -105,9 +95,7 @@ model = RandomForestClassifier(
 
 model.fit(X_train, y_train)
 
-# -----------------------------
 # EVALUATION
-# -----------------------------
 
 pred = model.predict(X_test)
 
@@ -115,9 +103,7 @@ print("\nModel Performance:\n")
 
 print(classification_report(y_test, pred))
 
-# -----------------------------
 # SAVE MODEL
-# -----------------------------
 
 joblib.dump(model, "emg_model.pkl")
 

@@ -8,22 +8,18 @@ import serial
 import numpy as np
 import joblib
 
-# --- SHARED GLOBAL VARIABLES ---
 # 1 = Open/Resting, 2 = Arm Closed, 3 = One Finger Point
 current_prediction = 1 
 ai_initialized = False
 
-# ==============================================================================
 # 1. AI PREDICTION ENGINE (Runs in the background thread)
-# ==============================================================================
+
 def prediction_engine_thread():
     global current_prediction, ai_initialized
     
     print("\n--- Starting AI Initialization ---")
     
-    # -----------------------------
     # CONFIGURATION & SETUP
-    # -----------------------------
     PORT = "COM3"   
     BAUD = 115200
     WINDOW_SIZE = 200
@@ -49,9 +45,7 @@ def prediction_engine_thread():
         return [np.mean(signal), np.std(signal), np.max(signal), np.min(signal), 
                 np.median(signal), np.var(signal), np.sum(np.abs(np.diff(signal))), np.mean(np.abs(signal))]
 
-    # -----------------------------
     # CALIBRATION (Baseline & MVC)
-    # -----------------------------
     print("\n[STEP 1] Stabilizing sensor. Please wait 5 seconds...")
     end_time = time.time() + 5
     while time.time() < end_time:
@@ -88,20 +82,16 @@ def prediction_engine_thread():
     print(f"MVC locked in: {live_mvc:.2f}")
     print("You can relax now!")
 
-    # -----------------------------
     # LIVE PREDICTION LOOP
-    # -----------------------------
     print("\n[STEP 4] LIVE PREDICTION STARTING...")
     print("Perform gestures: REST, POINT, or CLOSE. Press Ctrl+C in terminal to stop.\n")
 
-    # Tell Pygame to drop the "Loading" screen and show the hand NOW
     ai_initialized = True 
 
     window = []
     ser.reset_input_buffer()
     try:
         while True:
-            # Check if there is data waiting so we don't hang forever
             if ser.in_waiting > 0:
                 line = ser.readline().decode(errors='ignore').strip()
                 
@@ -109,16 +99,14 @@ def prediction_engine_thread():
                     raw_val = float(line)
                     norm_val = (raw_val - live_baseline) / (live_mvc - live_baseline)
                     window.append(norm_val)
-                    
-                    # Once we hit the window size, predict and PURGE
+
                     if len(window) >= WINDOW_SIZE:
                         features = extract_features(window[:WINDOW_SIZE])
                         prediction = model.predict([features])[0]
                         
                         avg_effort = np.mean(window) * 100
                         print(f"AI Prediction: {prediction:<5} | Effort: {avg_effort:>5.1f}%")
-                        
-                        # Map strings to the game states
+
                         if prediction == "REST":
                             current_prediction = 1
                         elif prediction == "CLOSE":
@@ -126,11 +114,9 @@ def prediction_engine_thread():
                         elif prediction == "POINT":
                             current_prediction = 3
 
-                        # Reset window and CLEAR the serial pile-up
                         window = []
                         ser.reset_input_buffer() 
             else:
-                # Small sleep if no data to prevent CPU spiking
                 time.sleep(0.001)
                     
     except KeyboardInterrupt:
@@ -139,9 +125,7 @@ def prediction_engine_thread():
         ser.close()
         print("Serial port closed.")
 
-# ==============================================================================
 # 2. THE PYGAME 3D ENGINE (Runs on the main thread)
-# ==============================================================================
 FINGER_SPEED = 8.0 
 
 class Joint:
@@ -252,7 +236,7 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit(); return
             
-            # --- STEP 1: ASK WHICH HAND ---
+            # STEP 1: ASK WHICH HAND
             if state == "SELECT":
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_l or event.key == pygame.K_r:
@@ -265,20 +249,18 @@ def main():
                         state = "LOADING"
                         pygame.display.set_caption("Initializing AI Engine... Check Terminal/Console.")
                         
-                        # --- STEP 2: INITIALIZE AI ON A BACKGROUND THREAD ---
+                        # STEP 2: INITIALIZE AI ON A BACKGROUND THREAD 
                         ai_thread = threading.Thread(target=prediction_engine_thread, daemon=True)
                         ai_thread.start()
             
-            # Allow escaping back to select menu
             elif state == "SIM" and event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE: 
                 state = "SELECT"
-                ai_initialized = False # Requires restarting the app to re-init AI safely
+                ai_initialized = False 
 
-        # Transition from Loading to Sim once calibration is done
         if state == "LOADING" and ai_initialized:
             state = "SIM"
 
-        # --- STEP 3: APPLY LIVE PREDICTIONS ---
+        # STEP 3: APPLY LIVE PREDICTIONS 
         if state == "SIM":
             if current_prediction == 1: # OPEN/REST
                 for f in fingers: f.j1.target_angle = f.j2.target_angle = f.j3.target_angle = 0
@@ -292,7 +274,7 @@ def main():
                     elif f.is_thumb: f.j1.target_angle, f.j2.target_angle = -70, -50
                     else: f.j1.target_angle, f.j2.target_angle, f.j3.target_angle = 85, 90, 85
 
-        # --- RENDER ---
+        # RENDER 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         gluPerspective(45, (display[0]/display[1]), 0.1, 100.0)

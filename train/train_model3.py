@@ -9,15 +9,11 @@ from sklearn.metrics import classification_report
 print("Loading dataset...")
 df = pd.read_csv("emg_dataset.csv")
 
-# -----------------------------
 # 1. FIX LABELS (Merge OPEN into REST)
-# -----------------------------
 print("Merging OPEN into REST...")
 df['label'] = df['label'].replace('OPEN', 'REST')
 
-# -----------------------------
 # 2. NORMALIZE PER SUBJECT + HAND
-# -----------------------------
 print("Normalizing EMG values per subject...")
 df["emg_norm"] = 0
 
@@ -31,9 +27,7 @@ for (subject, hand), group in df.groupby(["subject", "hand"]):
         
     df.loc[group.index, "emg_norm"] = group["emg"] - baseline
 
-# -----------------------------
 # 3. FEATURE EXTRACTION
-# -----------------------------
 WINDOW = 200
 
 def extract_features(signal):
@@ -65,9 +59,7 @@ for label in df["label"].unique():
             X_temp.append(features)
             y_temp.append(label)
 
-# -----------------------------
 # 4. BALANCE THE DATASET (Undersampling)
-# -----------------------------
 print("Balancing the dataset...")
 # Convert to DataFrame temporarily to make balancing easy
 df_features = pd.DataFrame(X_temp)
@@ -87,9 +79,7 @@ y = balanced_df['label'].values
 print("Final Balanced Dataset size:", X.shape)
 print("Class counts:\n", balanced_df['label'].value_counts())
 
-# -----------------------------
 # 5. TRAIN TEST SPLIT
-# -----------------------------
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -98,9 +88,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-# -----------------------------
 # 6. TRAIN MODEL
-# -----------------------------
 print("Training model...")
 model = RandomForestClassifier(
     n_estimators=1000,
@@ -113,16 +101,13 @@ model = RandomForestClassifier(
 
 model.fit(X_train, y_train)
 
-# -----------------------------
 # 7. EVALUATION
-# -----------------------------
 pred = model.predict(X_test)
 
 print("\nModel Performance:\n")
 print(classification_report(y_test, pred))
 
-# -----------------------------
 # 8. SAVE MODEL
-# -----------------------------
+
 joblib.dump(model, "emg_model3.pkl")
 print("\nModel saved as emg_model3.pkl")
